@@ -1,0 +1,44 @@
+# app.py
+
+from flask import Flask, redirect, url_for, render_template   # Grabs a HTML file and renders that as our web page
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return render_template("index.html", content="Testing")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+    
+    
+#----------------------------------------------------------------------------------------------------------------------------------
+# index.html
+
+{% extends "base.html" %}
+{% block title %}Home page{% endblock%}
+{% block content %}
+<h1>Test</h1>
+{% endblock %}
+
+
+
+#We call base.html and give information in this file
+
+#-----------------------------------------------------------------------------------------------------------------------------------
+# base.html
+
+<!doctype html>
+<html>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    </head>
+    <body>
+        <h1>Tim's Website</h1>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>
+
+
+#This html file is the parent file
