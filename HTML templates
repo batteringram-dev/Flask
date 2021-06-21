@@ -1,0 +1,30 @@
+from flask import Flask, redirect, url_for, render_template   # Grabs a HTML file and renders that as our web page
+
+app = Flask(__name__)
+
+@app.route("/<name>")
+def home(name):
+    return render_template("index.html", content=["Tim", "Joe", "Bill"], r=2)
+
+if __name__ == "__main__":
+    app.run()
+    
+    
+# ----------------------------------------------------------------------------------------------------------------------------------------------
+# Adding values, information in the website
+
+
+
+<!doctype html>
+<html>
+<head>
+    <title>Home page</title>
+    </head>
+    <body>
+        <h1>Home Page!</h1>
+        {% for x in content %}
+            <p>{{x}}</p>
+        {% endfor %}
+        <p>{{r}}</p>
+    </body>
+</html>
