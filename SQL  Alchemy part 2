@@ -1,0 +1,107 @@
+#app.py
+
+from flask import Flask, redirect, url_for, render_template, request, session, flash
+from datetime import timedelta
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.secret_key = "hello"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.permanent_session_lifetime = timedelta(minutes=5)
+
+db = SQLAlchemy(app)
+
+class users(db.Model):
+    _id = db.Column("id", db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    email = db.Column(db.String(100))
+
+    def __init__(self, name, email):
+        self.name = name
+        self.email = email
+
+db.create_all()
+
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+@app.route("/view")
+def view():
+    return render_template("view.html", values=users.query.all())   #In place of .all if we add delete that would delete all objects
+#Getting all of the users and pass them as objects into the render template and we can display that information
+
+@app.route("/login", methods=["POST", "GET"])
+def login():
+    if request.method == "POST":
+        session.permanent = True
+        user = request.form["nm"]
+        session["user"] = user
+
+        found_user = users.query.filter_by(name=user).first()
+        if found_user:                                               #Finding all the users in the table
+            session["email"] = found_user.email
+        else:
+            usr = users(user, "")
+            db.session.add(usr)                                      #If there are no users, then creating one
+            db.session.commit()
+
+        flash("Login Successful!")
+        return redirect(url_for("user"))
+    else:
+        if "user" in session:
+            return redirect(url_for("user"))
+        return render_template("login.html")
+
+@app.route("/user", methods=["POST", "GET"])
+def user():
+    email = None
+    if "user" in session:
+        user = session["user"]
+
+        if request.method == "POST":
+            email = request.form["email"]
+            session["email"] = email
+            found_user = users.query.filter_by(name=user).first()       #!!
+            found_user.email = email
+            db.session.commit()
+            flash("Your Email was saved!")
+        else:
+            if "email" in session:
+                email = session["email"]
+
+        return render_template("user.html", email=email)
+    else:
+        flash("You are not logged in!")
+        return redirect(url_for("login"))
+
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    session.pop("email", None)
+    flash("You have been logged out!")
+    return redirect(url_for("login"))
+
+if __name__ == "__main__":
+    app.run(debug=True)
+    
+    
+    
+    
+    
+    
+    
+#view.html
+
+{% extends "base.html" %}
+{% block title %}View All Users{% endblock %}
+{% block content %}
+    {% for item in values %}
+        <p>Name: {{item.name}}, Email: {{item.email}}</p>
+    {% endfor %}
+{% endblock %}
+
+
+# Checking how many users are there
